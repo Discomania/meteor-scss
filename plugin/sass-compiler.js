@@ -1,10 +1,13 @@
-import { convertToStandardPath } from './convert-to-standard-path'
-import sass from 'sass'
+// import { convertToStandardPath } from './convert-to-standard-path'
 import { replacePackagePaths } from './replace-package-paths'
 import { hasUnderscore } from './has-underscore'
 import { createImporter } from './create-importer'
 
-const rootDir = convertToStandardPath((process.env.PWD || process.cwd()) + '/')
+import sass from 'sass'
+import path from 'path'
+import { fileURLToPath } from 'node:url';
+
+const rootDir = (process.env.PWD || process.cwd()) + path.sep
 
 export class SassCompiler extends MultiFileCachingCompiler {
   constructor() {
@@ -116,12 +119,13 @@ export class SassCompiler extends MultiFileCachingCompiler {
     //Start fix sourcemap references
     if (output.map) {
       const map = JSON.parse(output.map.toString('utf-8'))
-      map.sources = sourceMapPaths
+	  //   map.sources = sourceMapPaths
+      map.sources = map.sources.map(x => fileURLToPath(x).replace(rootDir, './').replace(/\\/g, '/').replace('{}/', ''));
       output.map = map
     }
     //End fix sourcemap references
 
-    const compileResult = {
+	const compileResult = {
       css: output.css.toString('utf-8'),
       sourceMap: output.map,
     }
